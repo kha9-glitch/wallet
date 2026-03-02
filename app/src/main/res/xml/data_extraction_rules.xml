@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <!-- Sample data extraction rules -->
+    <cloud-backup>
+        <include domain="database" path="smart_wallet_db" />
+    </cloud-backup>
+    <device-transfer>
+        <include domain="database" path="smart_wallet_db" />
+    </device-transfer>
+</root>

@@ -1,0 +1,65 @@
+package com.example.smartwallet.activities;
+
+import android.os.Bundle;
+import android.content.Intent;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.navigation.NavController;
+import androidx.navigation.ui.AppBarConfiguration;
+import androidx.navigation.ui.NavigationUI;
+import androidx.navigation.fragment.NavHostFragment;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
+
+import com.example.smartwallet.R;
+import com.example.smartwallet.databinding.ActivityMainBinding;
+import com.example.smartwallet.workers.ExpiryWorker;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+
+import java.util.concurrent.TimeUnit;
+
+public class MainActivity extends AppCompatActivity {
+
+    private ActivityMainBinding binding;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
+        BottomNavigationView navView = findViewById(R.id.nav_view);
+        
+        AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
+                R.id.navigation_dashboard, R.id.navigation_expenses, 
+                R.id.navigation_documents, R.id.navigation_charts, R.id.navigation_account)
+                .build();
+                
+        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment_activity_main);
+        NavController navController = navHostFragment.getNavController();
+        NavigationUI.setupWithNavController(binding.navView, navController);
+
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return;
+        }
+
+        scheduleExpiryCheck();
+    }
+
+    private void scheduleExpiryCheck() {
+        PeriodicWorkRequest expiryWorkRequest = new PeriodicWorkRequest.Builder(
+                ExpiryWorker.class, 1, TimeUnit.DAYS)
+                .build();
+
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+                "ExpiryCheckWork",
+                ExistingPeriodicWorkPolicy.KEEP,
+                expiryWorkRequest
+        );
+    }
+}

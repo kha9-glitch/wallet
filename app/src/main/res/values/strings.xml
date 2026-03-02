@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Smart Wallet</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_expenses">Expenses</string>
+    <string name="title_documents">Documents</string>
+
+    <string name="add_expense">Add Expense</string>
+    <string name="add_document">Add Document</string>
+    
+    <string name="amount">Amount</string>
+    <string name="category">Category</string>
+    <string name="payment_mode">Payment Mode</string>
+    <string name="date">Date</string>
+    <string name="notes">Notes</string>
+    <string name="save">Save</string>
+
+    <string name="doc_name">Document Name</string>
+    <string name="doc_number">Document Number</string>
+    <string name="expiry_date">Expiry Date</string>
+    <string name="upload_image">Upload Image</string>
+    <string name="upload_pdf">Upload PDF</string>
+</resources>

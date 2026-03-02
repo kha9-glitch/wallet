@@ -1,0 +1,27 @@
+<resources>
+    <string-array name="expense_categories">
+        <item>Food</item>
+        <item>Travel</item>
+        <item>Petrol</item>
+        <item>Recharge</item>
+        <item>Shopping</item>
+        <item>Other</item>
+    </string-array>
+
+    <string-array name="payment_modes">
+        <item>Cash</item>
+        <item>UPI</item>
+        <item>Card</item>
+        <item>Bank Transfer</item>
+    </string-array>
+
+    <string-array name="doc_categories">
+        <item>Aadhaar</item>
+        <item>PAN</item>
+        <item>Driving License</item>
+        <item>Passport</item>
+        <item>Insurance</item>
+        <item>RC Book</item>
+        <item>Other</item>
+    </string-array>
+</resources>

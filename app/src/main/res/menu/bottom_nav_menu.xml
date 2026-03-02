@@ -1,0 +1,26 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_dashboard"
+        android:icon="@android:drawable/ic_menu_today"
+        android:title="Insights" />
+
+    <item
+        android:id="@+id/navigation_expenses"
+        android:icon="@android:drawable/ic_menu_agenda"
+        android:title="Expenses" />
+
+    <item
+        android:id="@+id/navigation_documents"
+        android:icon="@android:drawable/ic_menu_save"
+        android:title="Vault" />
+
+    <item
+        android:id="@+id/navigation_charts"
+        android:icon="@android:drawable/ic_menu_report_image"
+        android:title="Analytics" />
+
+    <item
+        android:id="@+id/navigation_account"
+        android:icon="@android:drawable/ic_menu_myplaces"
+        android:title="Profile" />
+</menu>

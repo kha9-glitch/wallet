@@ -1,0 +1,33 @@
+<resources>
+    <!-- Premium Design Palette -->
+    <color name="primary">#00E5FF</color>       <!-- Electric Cyan -->
+    <color name="primary_dark">#00B8D4</color>
+    <color name="on_primary">#000000</color>
+
+    <color name="secondary">#7C4DFF</color>      <!-- Deep Orchid -->
+    <color name="on_secondary">#FFFFFF</color>
+
+    <color name="background">#0A0E14</color>     <!-- Deep Midnight -->
+    <color name="surface">#161B22</color>        <!-- Dark Surface -->
+    <color name="surface_variant">#1F2937</color>
+    <color name="on_background">#E5E7EB</color>
+    <color name="on_surface">#F3F4F6</color>
+
+    <color name="accent_green">#34D399</color>    <!-- Success/Income -->
+    <color name="accent_red">#F87171</color>      <!-- Error/Expense -->
+    <color name="accent_yellow">#FBBF24</color>   <!-- Warning/Draft -->
+
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+    <color name="gray_light">#9CA3AF</color>
+    <color name="glass_white">#1AFFFFFF</color>   <!-- 10% White for Glass Effect -->
+    <color name="glass_dark">#4D000000</color>    <!-- 30% Black for Glass Effect -->
+
+    <!-- Legacy support (if needed) -->
+    <color name="purple_200">#7C4DFF</color>
+    <color name="purple_500">#6200EE</color>
+    <color name="purple_700">#3700B3</color>
+    <color name="teal_200">#03DAC5</color>
+    <color name="teal_700">#018786</color>
+    <color name="gray">#888888</color>
+</resources>

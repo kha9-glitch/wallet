@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <!-- Sample backup rules -->
+    <include domain="database" path="smart_wallet_db" />
+    <include domain="sharedpref" path="." />
+</root>
