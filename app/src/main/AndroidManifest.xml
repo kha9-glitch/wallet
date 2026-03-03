@@ -4,6 +4,16 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <uses-feature android:name="android.hardware.telephony" required="false" />
+    <uses-feature android:name="android.hardware.camera" required="false" />
 
     <application
         android:allowBackup="true"
@@ -36,6 +46,11 @@
             android:label="Register" />
 
         <activity
+            android:name=".activities.ForgotPasswordActivity"
+            android:exported="false"
+            android:label="Reset Password" />
+
+        <activity
             android:name=".activities.AddExpenseActivity"
             android:exported="false"
             android:label="Add/Edit Expense" />
@@ -44,6 +59,45 @@
             android:name=".activities.AddDocumentActivity"
             android:exported="false"
             android:label="Add/Edit Document" />
+
+        <activity
+            android:name=".activities.PinActivity"
+            android:exported="false"
+            android:label="App Lock" />
+
+        <activity
+            android:name=".activities.ExportActivity"
+            android:exported="false"
+            android:label="Export Data" />
+
+        <activity
+            android:name=".activities.UpiPaymentActivity"
+            android:exported="false"
+            android:label="UPI Payment" />
+
+        <activity
+            android:name=".activities.BudgetActivity"
+            android:exported="false"
+            android:label="Set Budget" />
+
+        <receiver
+            android:name=".utils.SMSReceiver"
+            android:exported="true"
+            android:permission="android.permission.BROADCAST_SMS">
+            <intent-filter>
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            </intent-filter>
+        </receiver>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
     </application>
 

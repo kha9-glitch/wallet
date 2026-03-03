@@ -41,4 +41,10 @@ public interface ExpenseDao {
 
     @Query("UPDATE expenses SET synced = 1, firebaseId = :firebaseId WHERE id = :id")
     void markSynced(int id, String firebaseId);
+
+    @Query("SELECT * FROM expenses WHERE userId = :userId AND firebaseId = :firebaseId")
+    Expense getExpenseByFirebaseId(String userId, String firebaseId);
+
+    @Query("SELECT * FROM expenses WHERE userId = :userId ORDER BY date DESC LIMIT 3")
+    List<Expense> getRecentExpenses(String userId);
 }

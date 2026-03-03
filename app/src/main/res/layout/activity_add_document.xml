@@ -1,81 +1,115 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:background="@color/background">
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <ImageButton
+        android:id="@+id/btn_back"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@android:drawable/ic_menu_revert"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/primary" />
+
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:text="Add Document"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@id/btn_back"
+        app:layout_constraintStart_toEndOf="@id/btn_back"
+        app:layout_constraintTop_toTopOf="@id/btn_back"
+        android:layout_marginStart="16dp" />
 
-        <EditText
-            android:id="@+id/et_doc_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Document Name"
-            android:layout_marginBottom="16dp" />
-
-        <EditText
-            android:id="@+id/et_doc_number"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Document Number"
-            android:layout_marginBottom="16dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Category" />
-        <Spinner
-            android:id="@+id/spinner_doc_category"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:entries="@array/doc_categories"
-            android:layout_marginBottom="16dp" />
-
-        <EditText
-            android:id="@+id/et_expiry_date"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Expiry Date (Optional)"
-            android:focusable="false"
-            android:layout_marginBottom="16dp" />
-
-        <EditText
-            android:id="@+id/et_doc_notes"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Notes (Optional)"
-            android:inputType="textMultiLine"
-            android:layout_marginBottom="16dp" />
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:padding="16dp"
+        app:layout_constraintTop_toBottomOf="@id/btn_back"
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="24dp">
+            android:orientation="vertical">
 
-            <Button
-                android:id="@+id/btn_upload_file"
-                android:layout_width="wrap_content"
+            <EditText
+                android:id="@+id/et_doc_name"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Upload File"
-                style="@style/Widget.Material3.Button.OutlinedButton" />
+                android:hint="Document Name"
+                android:layout_marginBottom="16dp" />
+
+            <EditText
+                android:id="@+id/et_doc_number"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Document Number"
+                android:layout_marginBottom="16dp" />
 
             <TextView
-                android:id="@+id/tv_file_status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="No file selected"
-                android:layout_marginStart="16dp" />
+                android:text="Category" />
+            <Spinner
+                android:id="@+id/spinner_doc_category"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:entries="@array/doc_categories"
+                android:layout_marginBottom="16dp" />
+
+            <EditText
+                android:id="@+id/et_expiry_date"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Expiry Date (Optional)"
+                android:focusable="false"
+                android:layout_marginBottom="16dp" />
+
+            <EditText
+                android:id="@+id/et_doc_notes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Notes (Optional)"
+                android:inputType="textMultiLine"
+                android:layout_marginBottom="16dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="24dp">
+
+                <Button
+                    android:id="@+id/btn_upload_file"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Upload File"
+                    style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                <TextView
+                    android:id="@+id/tv_file_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="No file selected"
+                    android:layout_marginStart="16dp" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btn_save_doc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Save Document" />
+
         </LinearLayout>
-
-        <Button
-            android:id="@+id/btn_save_doc"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Save Document" />
-
-    </LinearLayout>
-</ScrollView>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

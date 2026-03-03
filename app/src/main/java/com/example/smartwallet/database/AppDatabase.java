@@ -9,14 +9,16 @@ import androidx.room.RoomDatabase;
 import com.example.smartwallet.models.Document;
 import com.example.smartwallet.models.Expense;
 import com.example.smartwallet.models.Budget;
+import com.example.smartwallet.models.CategoryLimit;
 
-@Database(entities = {Expense.class, Document.class, Budget.class}, version = 2)
+@Database(entities = {Expense.class, Document.class, Budget.class, CategoryLimit.class}, version = 3)
 public abstract class AppDatabase extends RoomDatabase {
     private static AppDatabase instance;
 
     public abstract ExpenseDao expenseDao();
     public abstract DocumentDao documentDao();
     public abstract BudgetDao budgetDao();
+    public abstract CategoryLimitDao categoryLimitDao();
 
     public static synchronized AppDatabase getInstance(Context context) {
         if (instance == null) {

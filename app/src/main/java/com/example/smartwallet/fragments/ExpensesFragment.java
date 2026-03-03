@@ -8,10 +8,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageButton;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smartwallet.R;
@@ -33,6 +35,8 @@ public class ExpensesFragment extends Fragment implements ExpenseAdapter.OnExpen
     private AppDatabase db;
     private String userId;
     private List<Expense> allExpenses = new ArrayList<>();
+    private EditText etSearch;
+    private FloatingActionButton fab;
 
     @Nullable
     @Override
@@ -41,9 +45,12 @@ public class ExpensesFragment extends Fragment implements ExpenseAdapter.OnExpen
         View view = inflater.inflate(R.layout.fragment_expenses, container, false);
 
         rvExpenses = view.findViewById(R.id.rv_expenses);
-        FloatingActionButton fab = view.findViewById(R.id.fab_add_expense);
-        EditText etSearch = view.findViewById(R.id.et_search_expenses);
+        etSearch = view.findViewById(R.id.et_search_expenses);
+        fab = view.findViewById(R.id.fab_add_expense);
+        ImageButton btnFilter = view.findViewById(R.id.btn_filter_expenses);
 
+        rvExpenses.setLayoutManager(new LinearLayoutManager(getContext()));
+        
         db = AppDatabase.getInstance(getContext());
         userId = FirebaseAuth.getInstance().getUid();
 
@@ -65,6 +72,31 @@ public class ExpensesFragment extends Fragment implements ExpenseAdapter.OnExpen
 
         fab.setOnClickListener(v -> startActivity(new Intent(getActivity(), AddExpenseActivity.class)));
 
+        btnFilter.setOnClickListener(v -> {
+            // Show a simple sort/filter menu
+            android.widget.PopupMenu popup = new android.widget.PopupMenu(getContext(), btnFilter);
+            popup.getMenu().add("Sort by Date (Newest)");
+            popup.getMenu().add("Sort by Date (Oldest)");
+            popup.getMenu().add("Sort by Amount (High-Low)");
+            popup.getMenu().add("Sort by Amount (Low-High)");
+            
+            popup.setOnMenuItemClickListener(item -> {
+                String title = item.getTitle().toString();
+                if (title.contains("Newest")) {
+                    allExpenses.sort((e1, e2) -> e2.getDate().compareTo(e1.getDate()));
+                } else if (title.contains("Oldest")) {
+                    allExpenses.sort((e1, e2) -> e1.getDate().compareTo(e2.getDate()));
+                } else if (title.contains("High-Low")) {
+                    allExpenses.sort((e1, e2) -> Double.compare(e2.getAmount(), e1.getAmount()));
+                } else if (title.contains("Low-High")) {
+                    allExpenses.sort((e1, e2) -> Double.compare(e1.getAmount(), e2.getAmount()));
+                }
+                adapter.updateList(new ArrayList<>(allExpenses));
+                return true;
+            });
+            popup.show();
+        });
+
         return view;
     }
 
@@ -74,7 +106,7 @@ public class ExpensesFragment extends Fragment implements ExpenseAdapter.OnExpen
         } else {
             List<Expense> filtered = allExpenses.stream()
                     .filter(e -> e.getCategory().toLowerCase().contains(query.toLowerCase()) || 
-                                (e.getNotes() != null && e.getNotes().toLowerCase().contains(query.toLowerCase())))
+                                 (e.getNotes() != null && e.getNotes().toLowerCase().contains(query.toLowerCase())))
                     .collect(Collectors.toList());
             adapter.updateList(filtered);
         }
@@ -95,8 +127,17 @@ public class ExpensesFragment extends Fragment implements ExpenseAdapter.OnExpen
 
     @Override
     public void onDeleteClick(Expense expense) {
-        db.expenseDao().delete(expense);
-        loadExpenses();
+        new androidx.appcompat.app.AlertDialog.Builder(getContext())
+                .setTitle("Delete Expense")
+                .setMessage("Are you sure you want to delete this expense?")
+                .setPositiveButton("Delete", (dialog, which) -> {
+                    db.expenseDao().delete(expense);
+                    loadExpenses();
+                    // Sync with Firebase
+                    com.example.smartwallet.firebase.FirebaseSyncManager.getInstance(getContext()).syncExpenses();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     @Override

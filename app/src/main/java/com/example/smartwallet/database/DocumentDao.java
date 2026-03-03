@@ -38,4 +38,10 @@ public interface DocumentDao {
 
     @Query("UPDATE documents SET synced = 1, firebaseId = :firebaseId WHERE id = :id")
     void markSynced(int id, String firebaseId);
+
+    @Query("SELECT * FROM documents WHERE userId = :userId AND firebaseId = :firebaseId")
+    Document getDocumentByFirebaseId(String userId, String firebaseId);
+
+    @Query("SELECT * FROM documents WHERE userId = :userId AND expiryDate >= :today ORDER BY expiryDate ASC LIMIT 1")
+    Document getNextExpiryDocument(String userId, String today);
 }

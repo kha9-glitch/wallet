@@ -61,6 +61,20 @@ dependencies {
     // WorkManager
     implementation "androidx.work:work-runtime:2.9.0"
 
+    // Security - Encrypted SharedPreferences
+    implementation "androidx.security:security-crypto:1.1.0-alpha06"
+    implementation "androidx.biometric:biometric:1.2.0-alpha05"
+
+    // Image Cropper
+    implementation 'com.github.CanHub:Android-Image-Cropper:4.5.0'
+
+    // Export Data (CSV & PDF)
+    implementation 'com.opencsv:opencsv:5.7.1'
+    implementation 'com.itextpdf:itextg:5.5.10'
+
+    // QR Code Scanner (Lightweight)
+    implementation 'com.google.android.gms:play-services-code-scanner:16.1.0'
+
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'

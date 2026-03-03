@@ -28,6 +28,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.canhub.cropper.CropImageContract;
+import com.canhub.cropper.CropImageContractOptions;
+import com.canhub.cropper.CropImageOptions;
+import com.canhub.cropper.CropImageView;
+
+import androidx.activity.result.ActivityResultLauncher;
+
 public class DocumentsFragment extends Fragment implements DocumentAdapter.OnDocumentClickListener {
 
     private RecyclerView rvDocuments;
@@ -36,6 +43,23 @@ public class DocumentsFragment extends Fragment implements DocumentAdapter.OnDoc
     private String userId;
     private List<Document> allDocuments = new ArrayList<>();
 
+    private final ActivityResultLauncher<CropImageContractOptions> cropImage =
+            registerForActivityResult(new CropImageContract(), result -> {
+                if (result.isSuccessful()) {
+                    Uri uriContent = result.getUriContent();
+                    if (uriContent != null) {
+                        Intent intent = new Intent(getActivity(), AddDocumentActivity.class);
+                        intent.putExtra("scanned_file_uri", uriContent.toString());
+                        startActivity(intent);
+                    }
+                } else {
+                    Exception error = result.getError();
+                    if (error != null) {
+                        Toast.makeText(getContext(), "Scan cancelled or failed", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -43,7 +67,8 @@ public class DocumentsFragment extends Fragment implements DocumentAdapter.OnDoc
         View view = inflater.inflate(R.layout.fragment_documents, container, false);
 
         rvDocuments = view.findViewById(R.id.rv_documents);
-        FloatingActionButton fab = view.findViewById(R.id.fab_add_document);
+        FloatingActionButton fabAdd = view.findViewById(R.id.fab_add_document);
+        FloatingActionButton fabScan = view.findViewById(R.id.fab_scan_document);
         EditText etSearch = view.findViewById(R.id.et_search_docs);
 
         db = AppDatabase.getInstance(getContext());
@@ -65,9 +90,35 @@ public class DocumentsFragment extends Fragment implements DocumentAdapter.OnDoc
             public void afterTextChanged(Editable s) {}
         });
 
-        fab.setOnClickListener(v -> startActivity(new Intent(getActivity(), AddDocumentActivity.class)));
+        fabAdd.setOnClickListener(v -> startActivity(new Intent(getActivity(), AddDocumentActivity.class)));
+
+        fabScan.setOnClickListener(v -> {
+            if (androidx.core.content.ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.CAMERA) 
+                    != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissionLauncher.launch(android.Manifest.permission.CAMERA);
+            } else {
+                startScanning();
+            }
+        });
 
         return view;
+    }
+
+    private final ActivityResultLauncher<String> requestPermissionLauncher =
+            registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    startScanning();
+                } else {
+                    Toast.makeText(getContext(), "Camera permission is required to scan documents", Toast.LENGTH_LONG).show();
+                }
+            });
+
+    private void startScanning() {
+        CropImageOptions cropImageOptions = new CropImageOptions();
+        cropImageOptions.imageSourceIncludeGallery = true;
+        cropImageOptions.imageSourceIncludeCamera = true;
+        cropImageOptions.guidelines = CropImageView.Guidelines.ON;
+        cropImage.launch(new CropImageContractOptions(null, cropImageOptions));
     }
 
     private void filter(String query) {
@@ -97,8 +148,17 @@ public class DocumentsFragment extends Fragment implements DocumentAdapter.OnDoc
 
     @Override
     public void onDeleteClick(Document document) {
-        db.documentDao().delete(document);
-        loadDocuments();
+        new androidx.appcompat.app.AlertDialog.Builder(getContext())
+                .setTitle("Delete Document")
+                .setMessage("Are you sure you want to delete this document?")
+                .setPositiveButton("Delete", (dialog, which) -> {
+                    db.documentDao().delete(document);
+                    loadDocuments();
+                    // Sync with Firebase
+                    com.example.smartwallet.firebase.FirebaseSyncManager.getInstance(getContext()).downloadAllData();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     @Override
@@ -112,15 +172,61 @@ public class DocumentsFragment extends Fragment implements DocumentAdapter.OnDoc
     public void onOpenClick(Document document) {
         if (document.getFilePath() != null && !document.getFilePath().isEmpty()) {
             try {
+                File file = new File(document.getFilePath());
+                Uri uri;
+                if (file.exists()) {
+                    uri = androidx.core.content.FileProvider.getUriForFile(requireContext(), 
+                        requireContext().getPackageName() + ".provider", file);
+                } else {
+                    uri = Uri.parse(document.getFilePath());
+                }
+
+                String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(document.getFilePath());
+                if (extension == null || extension.isEmpty()) {
+                    int lastDot = document.getFilePath().lastIndexOf('.');
+                    if (lastDot != -1) {
+                        extension = document.getFilePath().substring(lastDot + 1);
+                    }
+                }
+                
+                String mimeType = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.toLowerCase());
+                if (mimeType == null) {
+                    mimeType = "*/*";
+                }
+
                 Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse(document.getFilePath()));
+                intent.setDataAndType(uri, mimeType);
                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                startActivity(intent);
+                
+                Intent chooser = Intent.createChooser(intent, "Open with");
+                startActivity(chooser);
             } catch (Exception e) {
                 Toast.makeText(getContext(), "Cannot open document: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         } else {
             Toast.makeText(getContext(), "No file associated with this document", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onDownloadClick(Document document) {
+        if (document.getFilePath() != null && !document.getFilePath().isEmpty()) {
+            try {
+                Uri uri = Uri.parse(document.getFilePath());
+                String fileName = document.getDocumentName();
+                
+                // For simplicity, we'll use a share intent which allows users to save to their device
+                Intent intent = new Intent(Intent.ACTION_SEND);
+                intent.setType("*/*");
+                intent.putExtra(Intent.EXTRA_STREAM, uri);
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                startActivity(Intent.createChooser(intent, "Download/Save Document"));
+                
+            } catch (Exception e) {
+                Toast.makeText(getContext(), "Download failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(getContext(), "No file to download", Toast.LENGTH_SHORT).show();
         }
     }
 }

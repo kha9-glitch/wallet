@@ -45,6 +45,8 @@ public class AddDocumentActivity extends AppCompatActivity {
             return;
         }
 
+        findViewById(R.id.btn_back).setOnClickListener(v -> finish());
+
         etName = findViewById(R.id.et_doc_name);
         etNumber = findViewById(R.id.et_doc_number);
         etExpiry = findViewById(R.id.et_expiry_date);
@@ -53,11 +55,26 @@ public class AddDocumentActivity extends AppCompatActivity {
         tvFileStatus = findViewById(R.id.tv_file_status);
         Button btnUpload = findViewById(R.id.btn_upload_file);
         Button btnSave = findViewById(R.id.btn_save_doc);
-
+        Button btnClear = new Button(this); // Just for logic if I don't want to edit layout heavily
+        // Better: check if layout has a clear button or just allow clicking upload again
+        
         db = AppDatabase.getInstance(this);
 
         etExpiry.setOnClickListener(v -> showDatePicker());
         btnUpload.setOnClickListener(v -> pickFile());
+        
+        tvFileStatus.setOnClickListener(v -> {
+            if (!filePath.isEmpty()) {
+                filePath = "";
+                tvFileStatus.setText("No File Selected");
+                Toast.makeText(this, "File Cleared", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        if (getIntent().hasExtra("scanned_file_uri")) {
+            filePath = getIntent().getStringExtra("scanned_file_uri");
+            tvFileStatus.setText("Scan Attached: " + filePath);
+        }
 
         if (getIntent().hasExtra("document_id")) {
             docId = getIntent().getIntExtra("document_id", -1);
@@ -106,8 +123,16 @@ public class AddDocumentActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 100 && resultCode == RESULT_OK && data != null) {
             Uri uri = data.getData();
-            filePath = uri.toString();
-            tvFileStatus.setText("File Selected: " + uri.getLastPathSegment());
+            if (uri != null) {
+                String fileName = "doc_" + System.currentTimeMillis();
+                String internalPath = com.example.smartwallet.utils.FileUtils.copyUriToInternalStorage(this, uri, fileName);
+                if (internalPath != null) {
+                    filePath = internalPath;
+                    tvFileStatus.setText("File Selected: " + fileName);
+                } else {
+                    Toast.makeText(this, "Failed to copy file", Toast.LENGTH_SHORT).show();
+                }
+            }
         }
     }
 

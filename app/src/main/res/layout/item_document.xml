@@ -64,6 +64,15 @@
             android:contentDescription="Edit Document" />
 
         <ImageButton
+            android:id="@+id/btn_download_doc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/stat_sys_download"
+            android:contentDescription="Download Document" />
+
+        <ImageButton
             android:id="@+id/btn_delete_doc"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

@@ -48,12 +48,12 @@ public class ExpiryWorker extends Worker {
                         long diff = expiryDate.getTime() - today.getTimeInMillis();
                         long days = diff / (24 * 60 * 60 * 1000);
 
-                        if (days == 30 || days == 7 || days == 1) {
-                            String message = doc.getName() + " will expire in " + days + " days";
-                            NotificationHelper.showNotification(getApplicationContext(), "Document Expiry", message, doc.getId());
+                        if (days <= 7 && days > 0) {
+                            String message = doc.getDocumentName() + " will expire in " + days + " days";
+                            NotificationHelper.showNotification(getApplicationContext(), "Document Expiry Alert", message);
                         } else if (days == 0) {
-                            String message = doc.getName() + " expires today!";
-                            NotificationHelper.showNotification(getApplicationContext(), "Document Expiry", message, doc.getId());
+                            String message = doc.getDocumentName() + " expires today!";
+                            NotificationHelper.showNotification(getApplicationContext(), "Document Expiry Alert", message);
                         }
                     }
                 } catch (ParseException e) {

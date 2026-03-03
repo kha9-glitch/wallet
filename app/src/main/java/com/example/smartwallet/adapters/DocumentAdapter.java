@@ -25,6 +25,8 @@ public class DocumentAdapter extends RecyclerView.Adapter<DocumentAdapter.Docume
         void onEditClick(Document document);
 
         void onOpenClick(Document document);
+
+        void onDownloadClick(Document document);
     }
 
     public DocumentAdapter(List<Document> documentList, OnDocumentClickListener listener) {
@@ -53,6 +55,7 @@ public class DocumentAdapter extends RecyclerView.Adapter<DocumentAdapter.Docume
 
         holder.btnOpen.setOnClickListener(v -> listener.onOpenClick(document));
         holder.btnEdit.setOnClickListener(v -> listener.onEditClick(document));
+        holder.btnDownload.setOnClickListener(v -> listener.onDownloadClick(document));
         holder.btnDelete.setOnClickListener(v -> listener.onDeleteClick(document));
     }
 
@@ -68,7 +71,7 @@ public class DocumentAdapter extends RecyclerView.Adapter<DocumentAdapter.Docume
 
     public static class DocumentViewHolder extends RecyclerView.ViewHolder {
         TextView tvName, tvCategory, tvExpiry;
-        ImageButton btnDelete, btnEdit, btnOpen;
+        ImageButton btnDelete, btnEdit, btnOpen, btnDownload;
 
         public DocumentViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -77,6 +80,7 @@ public class DocumentAdapter extends RecyclerView.Adapter<DocumentAdapter.Docume
             tvExpiry = itemView.findViewById(R.id.tv_doc_expiry);
             btnOpen = itemView.findViewById(R.id.btn_open_doc);
             btnEdit = itemView.findViewById(R.id.btn_edit_doc);
+            btnDownload = itemView.findViewById(R.id.btn_download_doc);
             btnDelete = itemView.findViewById(R.id.btn_delete_doc);
         }
     }

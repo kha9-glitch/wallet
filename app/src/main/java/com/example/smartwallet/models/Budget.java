@@ -1,33 +1,27 @@
 package com.example.smartwallet.models;
 
+import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
 @Entity(tableName = "budgets")
 public class Budget {
-    @PrimaryKey(autoGenerate = true)
-    private int id;
+    @PrimaryKey
+    @NonNull
     private String userId;
     private double monthlyBudget;
 
-    public Budget(String userId, double monthlyBudget) {
+    public Budget(@NonNull String userId, double monthlyBudget) {
         this.userId = userId;
         this.monthlyBudget = monthlyBudget;
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
+    @NonNull
     public String getUserId() {
         return userId;
     }
 
-    public void setUserId(String userId) {
+    public void setUserId(@NonNull String userId) {
         this.userId = userId;
     }
 

@@ -39,6 +39,8 @@ public class AddExpenseActivity extends AppCompatActivity {
             return;
         }
 
+        findViewById(R.id.btn_back).setOnClickListener(v -> finish());
+
         etAmount = findViewById(R.id.et_amount);
         etDate = findViewById(R.id.et_date);
         etNotes = findViewById(R.id.et_notes);
@@ -99,6 +101,10 @@ public class AddExpenseActivity extends AppCompatActivity {
         }
 
         double amount = Double.parseDouble(amountStr);
+        
+        // Feature 4: Category Limit Alert
+        checkCategoryLimit(category, amount);
+
         Expense expense = new Expense(userId, amount, category, payment, date, notes);
 
         if (expenseId == -1) {
@@ -114,5 +120,20 @@ public class AddExpenseActivity extends AppCompatActivity {
         FirebaseSyncManager.getInstance(this).syncExpenses();
 
         finish();
+    }
+
+    private void checkCategoryLimit(String category, double amount) {
+        new Thread(() -> {
+            String month = new SimpleDateFormat("yyyy-MM", Locale.getDefault()).format(Calendar.getInstance().getTime());
+            com.example.smartwallet.models.CategoryLimit limit = db.categoryLimitDao().getLimitForCategory(userId, category);
+            if (limit != null) {
+                double spent = db.categoryLimitDao().getCategoryTotal(userId, category, month);
+                if (spent + amount > limit.getLimitAmount()) {
+                    runOnUiThread(() -> {
+                        Toast.makeText(this, "⚠️ Alert: You have crossed your " + category + " budget!", Toast.LENGTH_LONG).show();
+                    });
+                }
+            }
+        }).start();
     }
 }

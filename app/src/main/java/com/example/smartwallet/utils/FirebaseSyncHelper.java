@@ -7,7 +7,7 @@ public class FirebaseSyncHelper {
     public static void syncBudget(String userId, double amount) {
         if (userId == null) userId = FirebaseAuth.getInstance().getUid();
         if (userId != null) {
-            FirebaseDatabase.getInstance().getReference()
+            FirebaseDatabase.getInstance("https://smart-wallet-975e9-default-rtdb.firebaseio.com/").getReference()
                     .child("users")
                     .child(userId)
                     .child("budget")

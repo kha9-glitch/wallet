@@ -13,6 +13,10 @@ public class NotificationHelper {
     private static final String CHANNEL_ID = "document_expiry_channel";
     private static final String CHANNEL_NAME = "Document Expiry Notifications";
 
+    public static void showNotification(Context context, String title, String message) {
+        showNotification(context, title, message, (int) System.currentTimeMillis());
+    }
+
     public static void showNotification(Context context, String title, String message, int notificationId) {
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
