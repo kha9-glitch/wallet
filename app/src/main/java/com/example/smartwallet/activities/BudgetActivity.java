@@ -13,6 +13,8 @@ import com.example.smartwallet.R;
 import com.example.smartwallet.database.AppDatabase;
 import com.example.smartwallet.models.Budget;
 import com.example.smartwallet.models.CategoryLimit;
+import com.example.smartwallet.utils.CurrencyUtils;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -42,6 +44,12 @@ public class BudgetActivity extends AppCompatActivity {
                 R.array.expense_categories, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerLimitCategory.setAdapter(adapter);
+
+        String symbol = CurrencyUtils.getCurrencySymbol(this);
+        ((TextInputLayout)findViewById(R.id.til_budget)).setPrefixText(symbol);
+        ((TextInputLayout)findViewById(R.id.til_limit)).setPrefixText(symbol);
+        ((TextInputLayout)findViewById(R.id.til_budget)).setHint("Amount (" + symbol + ")");
+        ((TextInputLayout)findViewById(R.id.til_limit)).setHint("Limit Amount (" + symbol + ")");
 
         loadCurrentBudget();
 

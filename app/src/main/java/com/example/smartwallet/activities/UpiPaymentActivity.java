@@ -17,6 +17,8 @@ import com.example.smartwallet.R;
 import com.example.smartwallet.database.AppDatabase;
 import com.example.smartwallet.firebase.FirebaseSyncManager;
 import com.example.smartwallet.models.Expense;
+import com.example.smartwallet.utils.CurrencyUtils;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.text.SimpleDateFormat;
@@ -29,12 +31,11 @@ public class UpiPaymentActivity extends AppCompatActivity {
     private Spinner spinnerCategory;
     private AppDatabase db;
     private String userId;
+    private String scannedMc, scannedTr, scannedTid, scannedPn;
 
     private final ActivityResultLauncher<Intent> upiPayLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
-                // Handling UPI result
-                // Note: UPI apps behave differently. Most return data in intent.
                 if (result.getResultCode() == RESULT_OK || result.getResultCode() == 11) {
                     if (result.getData() != null) {
                         String response = result.getData().getStringExtra("response");
@@ -44,7 +45,6 @@ public class UpiPaymentActivity extends AppCompatActivity {
                             Toast.makeText(this, "Payment Not Completed", Toast.LENGTH_SHORT).show();
                         }
                     } else {
-                        // Some apps don't return data but result is OK
                         saveUpiExpense();
                     }
                 } else {
@@ -68,13 +68,18 @@ public class UpiPaymentActivity extends AppCompatActivity {
         Button btnPay = findViewById(R.id.btn_pay);
         Button btnScan = findViewById(R.id.btn_scan_qr);
 
+        String symbol = CurrencyUtils.getCurrencySymbol(this);
+        ((TextInputLayout)etAmount.getParent().getParent()).setHint("Amount (" + symbol + ")");
+
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.expense_categories, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCategory.setAdapter(adapter);
 
         androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbar);
-        toolbar.setNavigationOnClickListener(v -> finish());
+        if (toolbar != null) {
+            toolbar.setNavigationOnClickListener(v -> finish());
+        }
 
         btnPay.setOnClickListener(v -> initiatePayment());
         btnScan.setOnClickListener(v -> scanQrCode());
@@ -105,6 +110,10 @@ public class UpiPaymentActivity extends AppCompatActivity {
     private void handleUpiQr(String qrData) {
         Uri uri = Uri.parse(qrData);
         String upiId = uri.getQueryParameter("pa");
+        scannedPn = uri.getQueryParameter("pn");
+        scannedMc = uri.getQueryParameter("mc");
+        scannedTr = uri.getQueryParameter("tr");
+        scannedTid = uri.getQueryParameter("tid");
         String amount = uri.getQueryParameter("am");
         String note = uri.getQueryParameter("tn");
 
@@ -122,36 +131,60 @@ public class UpiPaymentActivity extends AppCompatActivity {
     }
 
     private void initiatePayment() {
-        String amount = etAmount.getText().toString();
+        String amountStr = etAmount.getText().toString();
         String upiId = etUpiId.getText().toString();
         String notes = etNotes.getText().toString();
 
-        if (amount.isEmpty() || upiId.isEmpty()) {
+        if (amountStr.isEmpty() || upiId.isEmpty()) {
             Toast.makeText(this, "Amount and UPI ID are required", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        Uri uri = Uri.parse("upi://pay").buildUpon()
-                .appendQueryParameter("pa", upiId)
-                .appendQueryParameter("pn", "Smart Wallet User")
-                .appendQueryParameter("tn", notes)
-                .appendQueryParameter("am", amount)
-                .appendQueryParameter("cu", "INR")
-                .build();
+        String formattedAmount = amountStr;
+        try {
+            double amt = Double.parseDouble(amountStr);
+            formattedAmount = String.format(Locale.getDefault(), "%.2f", amt);
+        } catch (Exception ignored) {}
 
+        String tr = (scannedTr != null) ? scannedTr : "TR" + System.currentTimeMillis();
+        String tid = (scannedTid != null) ? scannedTid : "TID" + System.currentTimeMillis();
+        
+        String currentUserName = "Smart Wallet User";
+        if (FirebaseAuth.getInstance().getCurrentUser() != null && FirebaseAuth.getInstance().getCurrentUser().getEmail() != null) {
+            currentUserName = FirebaseAuth.getInstance().getCurrentUser().getEmail().split("@")[0];
+        }
+        
+        String pn = (scannedPn != null) ? scannedPn : currentUserName;
+        String mc = (scannedMc != null) ? scannedMc : "";
+
+        Uri.Builder builder = Uri.parse("upi://pay").buildUpon()
+                .appendQueryParameter("pa", upiId)
+                .appendQueryParameter("pn", pn)
+                .appendQueryParameter("tn", notes.isEmpty() ? "Payment" : notes)
+                .appendQueryParameter("am", formattedAmount)
+                .appendQueryParameter("cu", "INR")
+                .appendQueryParameter("tr", tr);
+
+        if (!mc.isEmpty()) builder.appendQueryParameter("mc", mc);
+        if (!tid.isEmpty()) builder.appendQueryParameter("tid", tid);
+
+        Uri uri = builder.build();
         Intent upiPayIntent = new Intent(Intent.ACTION_VIEW);
         upiPayIntent.setData(uri);
 
-        Intent chooser = Intent.createChooser(upiPayIntent, "Pay with");
-        if (null != chooser.resolveActivity(getPackageManager())) {
+        try {
+            Intent chooser = Intent.createChooser(upiPayIntent, "Pay with");
             upiPayLauncher.launch(chooser);
-        } else {
-            Toast.makeText(this, "No UPI app found, please install one to continue", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(this, "No UPI app found", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void saveUpiExpense() {
-        double amount = Double.parseDouble(etAmount.getText().toString());
+        String amountStr = etAmount.getText().toString();
+        if (amountStr.isEmpty()) return;
+        
+        double amount = Double.parseDouble(amountStr);
         String category = spinnerCategory.getSelectedItem().toString();
         String notes = etNotes.getText().toString();
         String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Calendar.getInstance().getTime());

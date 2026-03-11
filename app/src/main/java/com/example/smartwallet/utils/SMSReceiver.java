@@ -74,7 +74,8 @@ public class SMSReceiver extends BroadcastReceiver {
                 Log.d(TAG, "Auto Expense Saved: " + amount);
             }).start();
 
-            NotificationHelper.showNotification(context, "Auto Expense Detected", "Added ₹" + amount + " to expenses.");
+            String symbol = CurrencyUtils.getCurrencySymbol(context);
+            NotificationHelper.showNotification(context, "Auto Expense Detected", "Added " + symbol + amount + " to expenses.");
 
         } catch (Exception e) {
             Log.e(TAG, "Error processing transaction", e);

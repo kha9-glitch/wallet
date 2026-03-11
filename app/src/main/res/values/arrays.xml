@@ -24,4 +24,12 @@
         <item>RC Book</item>
         <item>Other</item>
     </string-array>
+
+    <string-array name="currency_options">
+        <item>INR (₹)</item>
+        <item>USD ($)</item>
+        <item>EUR (€)</item>
+        <item>GBP (£)</item>
+        <item>JPY (¥)</item>
+    </string-array>
 </resources>

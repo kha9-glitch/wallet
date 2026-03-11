@@ -120,6 +120,31 @@
                 android:paddingStart="24dp"
                 app:cornerRadius="16dp" />
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:layout_marginBottom="12dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="24dp"
+                android:background="@drawable/button_tonal_bg">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Base Currency"
+                    android:textColor="@color/white"
+                    android:textSize="14sp" />
+
+                <Spinner
+                    android:id="@+id/spinner_currency"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:entries="@array/currency_options" />
+            </LinearLayout>
+
             <!-- Security Section -->
             <TextView
                 android:layout_width="wrap_content"
@@ -141,7 +166,8 @@
                 android:text="Enable App Lock (PIN)"
                 android:textSize="14sp"
                 app:thumbTint="@color/primary"
-                app:trackTint="@color/gray_light" />
+                app:trackTint="@color/gray_light"
+                android:background="@drawable/button_tonal_bg" />
 
             <Button
                 android:id="@+id/btn_change_pin"

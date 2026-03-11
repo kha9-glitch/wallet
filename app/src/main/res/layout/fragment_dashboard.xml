@@ -17,13 +17,22 @@
             android:background="@drawable/premium_bg"
             android:padding="24dp">
 
-            <ImageView
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/iv_logo"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                android:src="@drawable/app_logo_premium"
+                app:cardCornerRadius="25dp"
+                app:cardElevation="2dp"
+                app:strokeWidth="0dp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/app_logo_premium" />
+            </com.google.android.material.card.MaterialCardView>
 
             <TextView
                 android:id="@+id/tv_greeting"
@@ -84,11 +93,12 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:padding="16dp"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="10dp"
                     android:gravity="center_vertical">
                     <ImageView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
                         android:src="@android:drawable/ic_dialog_alert"
                         app:tint="#FF453A" />
                     <LinearLayout
@@ -182,7 +192,7 @@
 
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
-                    android:layout_height="120dp"
+                    android:layout_height="80dp"
                     android:layout_marginEnd="8dp"
                     android:layout_weight="1"
                     app:cardBackgroundColor="@color/surface"
@@ -215,7 +225,7 @@
 
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
-                    android:layout_height="120dp"
+                    android:layout_height="80dp"
                     android:layout_marginStart="8dp"
                     android:layout_weight="1"
                     app:cardBackgroundColor="@color/surface"
@@ -263,14 +273,15 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="12dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:layout_marginBottom="12dp">
+                        android:layout_marginBottom="8dp">
 
                         <ImageView
                             android:layout_width="24dp"
@@ -307,8 +318,8 @@
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:layout_marginTop="12dp"
-                        android:layout_marginBottom="12dp"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="8dp"
                         android:background="#33FFFFFF" />
 
                     <TextView
@@ -333,22 +344,6 @@
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
-
-            <!-- Recent Expenses (NEW) -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="Recent Expenses"
-                android:textColor="@color/white"
-                android:textStyle="bold" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rv_recent_expenses"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:nestedScrollingEnabled="false" />
 
             <!-- Quick Actions -->
             <TextView
@@ -396,6 +391,22 @@
                 android:text="UPI Pay"
                 app:cornerRadius="16dp"
                 app:icon="@android:drawable/ic_menu_send" />
+
+            <!-- Recent Expenses (NEW) -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="Recent Expenses"
+                android:textColor="@color/white"
+                android:textStyle="bold" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_recent_expenses"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:nestedScrollingEnabled="false" />
 
         </LinearLayout>
     </LinearLayout>

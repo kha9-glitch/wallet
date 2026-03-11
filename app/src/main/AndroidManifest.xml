@@ -8,12 +8,26 @@
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <uses-feature android:name="android.hardware.telephony" required="false" />
-    <uses-feature android:name="android.hardware.camera" required="false" />
+    <uses-feature android:name="android.hardware.telephony" android:required="false" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
+    <queries>
+        <package android:name="com.google.android.apps.nbu.paisa.user" />
+        <package android:name="com.phonepe.app" />
+        <package android:name="net.one97.paytm" />
+        <package android:name="in.amazon.mShop.android.shopping" />
+        <package android:name="in.org.npci.upiapp" />
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="upi" />
+        </intent>
+    </queries>
 
     <application
         android:allowBackup="true"
@@ -79,6 +93,11 @@
             android:name=".activities.BudgetActivity"
             android:exported="false"
             android:label="Set Budget" />
+
+        <activity
+            android:name="com.canhub.cropper.CropImageActivity"
+            android:theme="@style/Theme.AppCompat.DayNight.DarkActionBar"
+            android:exported="true" />
 
         <receiver
             android:name=".utils.SMSReceiver"

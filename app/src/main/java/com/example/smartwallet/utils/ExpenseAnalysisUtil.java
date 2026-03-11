@@ -20,7 +20,7 @@ public class ExpenseAnalysisUtil {
         public String suggestion;
     }
 
-    public static AnalysisResult performAnalysis(AppDatabase db, String userId) {
+    public static AnalysisResult performAnalysis(AppDatabase db, String userId, String symbol) {
         AnalysisResult result = new AnalysisResult();
         
         Calendar cal = Calendar.getInstance();
@@ -68,13 +68,13 @@ public class ExpenseAnalysisUtil {
         // 3. Budget Warning
         double budget = db.budgetDao().getBudget(userId);
         if (budget > 0 && currentTotal > budget) {
-            result.budgetWarning = String.format(Locale.getDefault(), "You exceeded your budget by ₹%.0f!", (currentTotal - budget));
+            result.budgetWarning = String.format(Locale.getDefault(), "You exceeded your budget by %s%.0f!", symbol, (currentTotal - budget));
         }
 
         // 4. Suggestion (Feature 3)
         if (topAmt > 0) {
             double possibleSavings = topAmt * 0.10;
-            result.suggestion = String.format(Locale.getDefault(), "If you reduce %s spending by 10%%, you can save ₹%.0f per month.", topCat, possibleSavings);
+            result.suggestion = String.format(Locale.getDefault(), "If you reduce %s spending by 10%%, you can save %s%.0f per month.", topCat, symbol, possibleSavings);
         } else {
             result.suggestion = "Track more expenses to get personalized saving tips.";
         }

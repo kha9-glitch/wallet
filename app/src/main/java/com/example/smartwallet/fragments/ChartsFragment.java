@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.smartwallet.R;
 import com.example.smartwallet.database.AppDatabase;
+import com.example.smartwallet.databinding.FragmentChartsBinding;
 import com.example.smartwallet.models.Expense;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.PieChart;
@@ -31,8 +32,7 @@ import java.util.Map;
 
 public class ChartsFragment extends Fragment {
 
-    private PieChart pieChart;
-    private BarChart barChart;
+    private FragmentChartsBinding binding;
     private AppDatabase db;
     private String userId;
 
@@ -40,10 +40,8 @@ public class ChartsFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
             @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_charts, container, false);
-
-        pieChart = view.findViewById(R.id.pie_chart);
-        barChart = view.findViewById(R.id.bar_chart);
+        binding = FragmentChartsBinding.inflate(inflater, container, false);
+        View view = binding.getRoot();
 
         db = AppDatabase.getInstance(getContext());
         userId = FirebaseAuth.getInstance().getUid();
@@ -54,17 +52,23 @@ public class ChartsFragment extends Fragment {
         return view;
     }
 
-    private void setupCharts() {
-        pieChart.getDescription().setEnabled(false);
-        pieChart.setHoleColor(Color.TRANSPARENT);
-        pieChart.setEntryLabelColor(Color.WHITE);
-        pieChart.getLegend().setTextColor(Color.WHITE);
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
+    }
 
-        barChart.getDescription().setEnabled(false);
-        barChart.getXAxis().setTextColor(Color.WHITE);
-        barChart.getAxisLeft().setTextColor(Color.WHITE);
-        barChart.getAxisRight().setEnabled(false);
-        barChart.getLegend().setTextColor(Color.WHITE);
+    private void setupCharts() {
+        binding.pieChart.getDescription().setEnabled(false);
+        binding.pieChart.setHoleColor(Color.TRANSPARENT);
+        binding.pieChart.setEntryLabelColor(Color.WHITE);
+        binding.pieChart.getLegend().setTextColor(Color.WHITE);
+
+        binding.barChart.getDescription().setEnabled(false);
+        binding.barChart.getXAxis().setTextColor(Color.WHITE);
+        binding.barChart.getAxisLeft().setTextColor(Color.WHITE);
+        binding.barChart.getAxisRight().setEnabled(false);
+        binding.barChart.getLegend().setTextColor(Color.WHITE);
     }
 
     private void loadData() {
@@ -104,8 +108,8 @@ public class ChartsFragment extends Fragment {
         dataSet.setValueTextSize(12f);
 
         PieData data = new PieData(dataSet);
-        pieChart.setData(data);
-        pieChart.invalidate();
+        binding.pieChart.setData(data);
+        binding.pieChart.invalidate();
     }
 
     private void setupBarChart(Map<String, Float> map) {
@@ -120,7 +124,7 @@ public class ChartsFragment extends Fragment {
         dataSet.setValueTextColor(Color.WHITE);
 
         BarData data = new BarData(dataSet);
-        barChart.setData(data);
-        barChart.invalidate();
+        binding.barChart.setData(data);
+        binding.barChart.invalidate();
     }
 }

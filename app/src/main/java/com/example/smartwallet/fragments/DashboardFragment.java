@@ -5,8 +5,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,17 +12,16 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.smartwallet.R;
 import com.example.smartwallet.activities.AddDocumentActivity;
 import com.example.smartwallet.activities.AddExpenseActivity;
 import com.example.smartwallet.activities.UpiPaymentActivity;
 import com.example.smartwallet.adapters.ExpenseAdapter;
 import com.example.smartwallet.database.AppDatabase;
+import com.example.smartwallet.databinding.FragmentDashboardBinding;
 import com.example.smartwallet.models.Document;
 import com.example.smartwallet.models.Expense;
 import com.example.smartwallet.utils.ExpenseAnalysisUtil;
-import com.google.android.material.card.MaterialCardView;
-import com.google.android.material.progressindicator.LinearProgressIndicator;
+import com.example.smartwallet.utils.CurrencyUtils;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.text.SimpleDateFormat;
@@ -35,12 +32,7 @@ import java.util.Locale;
 
 public class DashboardFragment extends Fragment implements ExpenseAdapter.OnExpenseClickListener {
 
-    private TextView tvTodayExpense, tvMonthlyExpense, tvTotalDocs, tvGreeting, tvBudgetRemaining, tvBudgetTotal;
-    private TextView tvExpiryName, tvExpiryDate;
-    private TextView tvAiTopCat, tvAiComparison, tvAiSuggestion, tvAiWarning;
-    private MaterialCardView cardExpiry;
-    private RecyclerView rvRecentExpenses;
-    private LinearProgressIndicator budgetProgress;
+    private FragmentDashboardBinding binding;
     private AppDatabase db;
     private String userId;
 
@@ -48,46 +40,37 @@ public class DashboardFragment extends Fragment implements ExpenseAdapter.OnExpe
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
             @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_dashboard, container, false);
-
-        tvTodayExpense = view.findViewById(R.id.tv_today_expense);
-        tvMonthlyExpense = view.findViewById(R.id.tv_monthly_expense);
-        tvTotalDocs = view.findViewById(R.id.tv_total_docs);
-        tvGreeting = view.findViewById(R.id.tv_greeting);
-        tvBudgetRemaining = view.findViewById(R.id.tv_budget_remaining);
-        tvBudgetTotal = view.findViewById(R.id.tv_budget_total);
-        budgetProgress = view.findViewById(R.id.budget_progress);
-        
-        tvExpiryName = view.findViewById(R.id.tv_expiry_name);
-        tvExpiryDate = view.findViewById(R.id.tv_expiry_date);
-        cardExpiry = view.findViewById(R.id.card_next_expiry);
-        rvRecentExpenses = view.findViewById(R.id.rv_recent_expenses);
-
-        tvAiTopCat = view.findViewById(R.id.tv_ai_top_cat);
-        tvAiComparison = view.findViewById(R.id.tv_ai_comparison);
-        tvAiSuggestion = view.findViewById(R.id.tv_ai_suggestion);
-        tvAiWarning = view.findViewById(R.id.tv_ai_warning);
-
-        Button btnAddExpense = view.findViewById(R.id.btn_add_expense_quick);
-        Button btnAddDoc = view.findViewById(R.id.btn_add_doc_quick);
-        Button btnUpiPay = view.findViewById(R.id.btn_upi_pay_quick);
+        binding = FragmentDashboardBinding.inflate(inflater, container, false);
+        View view = binding.getRoot();
 
         db = AppDatabase.getInstance(getContext());
         userId = FirebaseAuth.getInstance().getUid();
 
-        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-            String email = FirebaseAuth.getInstance().getCurrentUser().getEmail();
-            if (email != null) {
+        com.google.firebase.auth.FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            String displayName = user.getDisplayName();
+            String email = user.getEmail();
+            if (displayName != null && !displayName.isEmpty()) {
+                binding.tvGreeting.setText("Hi, " + displayName + "!");
+            } else if (email != null) {
                 String name = email.split("@")[0];
-                tvGreeting.setText("Hi, " + name + "!");
+                binding.tvGreeting.setText("Hi, " + name + "!");
+            } else {
+                binding.tvGreeting.setText("Hi, User!");
             }
         }
 
-        btnAddExpense.setOnClickListener(v -> startActivity(new Intent(getActivity(), AddExpenseActivity.class)));
-        btnAddDoc.setOnClickListener(v -> startActivity(new Intent(getActivity(), AddDocumentActivity.class)));
-        btnUpiPay.setOnClickListener(v -> startActivity(new Intent(getActivity(), UpiPaymentActivity.class)));
+        binding.btnAddExpenseQuick.setOnClickListener(v -> startActivity(new Intent(getActivity(), AddExpenseActivity.class)));
+        binding.btnAddDocQuick.setOnClickListener(v -> startActivity(new Intent(getActivity(), AddDocumentActivity.class)));
+        binding.btnUpiPayQuick.setOnClickListener(v -> startActivity(new Intent(getActivity(), UpiPaymentActivity.class)));
 
         return view;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
     }
 
     @Override
@@ -110,49 +93,52 @@ public class DashboardFragment extends Fragment implements ExpenseAdapter.OnExpe
             
             List<Expense> recentExpenses = db.expenseDao().getRecentExpenses(userId);
             Document nextExpiry = db.documentDao().getNextExpiryDocument(userId, today);
-            ExpenseAnalysisUtil.AnalysisResult analysis = ExpenseAnalysisUtil.performAnalysis(db, userId);
+            String symbol = CurrencyUtils.getCurrencySymbol(getContext());
+            ExpenseAnalysisUtil.AnalysisResult analysis = ExpenseAnalysisUtil.performAnalysis(db, userId, symbol);
 
             if (getActivity() == null) return;
             getActivity().runOnUiThread(() -> {
-                tvTodayExpense.setText("₹" + String.format("%.0f", todayTotal));
-                tvMonthlyExpense.setText("₹" + String.format("%.0f", monthlyTotal));
-                tvTotalDocs.setText(String.valueOf(totalDocs));
+                if (binding == null) return; // Prevent crashes if fragment is destroyed
+
+                binding.tvTodayExpense.setText(symbol + String.format("%.0f", todayTotal));
+                binding.tvMonthlyExpense.setText(symbol + String.format("%.0f", monthlyTotal));
+                binding.tvTotalDocs.setText(String.valueOf(totalDocs));
 
                 // Display Analysis
-                tvAiTopCat.setText("Highest Spending: " + analysis.highestCategory + " (₹" + String.format("%.0f", analysis.highestAmount) + ")");
-                tvAiComparison.setText(analysis.comparisonMessage);
-                tvAiSuggestion.setText(analysis.suggestion);
+                binding.tvAiTopCat.setText("Highest Spending: " + analysis.highestCategory + " (" + symbol + String.format("%.0f", analysis.highestAmount) + ")");
+                binding.tvAiComparison.setText(analysis.comparisonMessage);
+                binding.tvAiSuggestion.setText(analysis.suggestion);
                 if (analysis.budgetWarning != null) {
-                    tvAiWarning.setText(analysis.budgetWarning);
-                    tvAiWarning.setVisibility(View.VISIBLE);
+                    binding.tvAiWarning.setText(analysis.budgetWarning);
+                    binding.tvAiWarning.setVisibility(View.VISIBLE);
                 } else {
-                    tvAiWarning.setVisibility(View.GONE);
+                    binding.tvAiWarning.setVisibility(View.GONE);
                 }
 
                 if (monthlyBudget > 0) {
                     double remaining = monthlyBudget - monthlyTotal;
-                    tvBudgetTotal.setText("Budget: ₹" + String.format("%.0f", monthlyBudget));
-                    tvBudgetRemaining.setText("₹" + String.format("%.0f", Math.max(0, remaining)) + " left");
+                    binding.tvBudgetTotal.setText("Budget: " + symbol + String.format("%.0f", monthlyBudget));
+                    binding.tvBudgetRemaining.setText(symbol + String.format("%.0f", Math.max(0, remaining)) + " left");
                     int progress = (int) ((monthlyTotal / monthlyBudget) * 100);
-                    budgetProgress.setProgress(Math.min(100, progress));
+                    binding.budgetProgress.setProgress(Math.min(100, progress));
                 } else {
-                    tvBudgetTotal.setText("No Budget Set");
-                    tvBudgetRemaining.setText("₹0 left");
-                    budgetProgress.setProgress(0);
+                    binding.tvBudgetTotal.setText("No Budget Set");
+                    binding.tvBudgetRemaining.setText(symbol + "0 left");
+                    binding.budgetProgress.setProgress(0);
                 }
 
                 if (nextExpiry != null) {
-                    cardExpiry.setVisibility(View.VISIBLE);
-                    tvExpiryName.setText(nextExpiry.getDocumentName());
-                    tvExpiryDate.setText("Expires: " + nextExpiry.getExpiryDate());
+                    binding.cardNextExpiry.setVisibility(View.VISIBLE);
+                    binding.tvExpiryName.setText(nextExpiry.getDocumentName());
+                    binding.tvExpiryDate.setText("Expires: " + nextExpiry.getExpiryDate());
                 } else {
-                    cardExpiry.setVisibility(View.GONE);
+                    binding.cardNextExpiry.setVisibility(View.GONE);
                 }
 
                 if (recentExpenses != null && !recentExpenses.isEmpty()) {
                     ExpenseAdapter adapter = new ExpenseAdapter(recentExpenses, this);
-                    rvRecentExpenses.setAdapter(adapter);
-                    rvRecentExpenses.setLayoutManager(new LinearLayoutManager(getContext()));
+                    binding.rvRecentExpenses.setAdapter(adapter);
+                    binding.rvRecentExpenses.setLayoutManager(new LinearLayoutManager(getContext()));
                 }
             });
         }).start();

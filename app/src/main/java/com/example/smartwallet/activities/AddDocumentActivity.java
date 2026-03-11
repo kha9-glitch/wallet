@@ -13,6 +13,17 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import android.webkit.MimeTypeMap;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import com.canhub.cropper.CropImageContract;
+import com.canhub.cropper.CropImageContractOptions;
+import com.canhub.cropper.CropImageOptions;
+import com.canhub.cropper.CropImageView;
+import android.graphics.Color;
+import android.Manifest;
+import android.content.pm.PackageManager;
+import androidx.core.content.ContextCompat;
 
 import com.example.smartwallet.R;
 import com.example.smartwallet.database.AppDatabase;
@@ -54,14 +65,20 @@ public class AddDocumentActivity extends AppCompatActivity {
         spinnerCategory = findViewById(R.id.spinner_doc_category);
         tvFileStatus = findViewById(R.id.tv_file_status);
         Button btnUpload = findViewById(R.id.btn_upload_file);
+        Button btnScan = findViewById(R.id.btn_scan_file);
         Button btnSave = findViewById(R.id.btn_save_doc);
-        Button btnClear = new Button(this); // Just for logic if I don't want to edit layout heavily
-        // Better: check if layout has a clear button or just allow clicking upload again
         
         db = AppDatabase.getInstance(this);
 
+        // Populate Category Spinner
+        ArrayAdapter<CharSequence> categoryAdapter = ArrayAdapter.createFromResource(this,
+                R.array.doc_categories, android.R.layout.simple_spinner_item);
+        categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerCategory.setAdapter(categoryAdapter);
+
         etExpiry.setOnClickListener(v -> showDatePicker());
         btnUpload.setOnClickListener(v -> pickFile());
+        btnScan.setOnClickListener(v -> checkCameraPermission());
         
         tvFileStatus.setOnClickListener(v -> {
             if (!filePath.isEmpty()) {
@@ -71,9 +88,21 @@ public class AddDocumentActivity extends AppCompatActivity {
             }
         });
 
-        if (getIntent().hasExtra("scanned_file_uri")) {
-            filePath = getIntent().getStringExtra("scanned_file_uri");
-            tvFileStatus.setText("Scan Attached: " + filePath);
+        if (getIntent().hasExtra("scanned_file_path")) {
+            String internalPath = getIntent().getStringExtra("scanned_file_path");
+            if (internalPath != null) {
+                filePath = internalPath;
+                java.io.File f = new java.io.File(internalPath);
+                tvFileStatus.setText("Scan Attached: " + f.getName());
+            }
+        } else if (getIntent().hasExtra("scanned_file_uri")) {
+            Uri uri = Uri.parse(getIntent().getStringExtra("scanned_file_uri"));
+            String fileName = "scan_" + System.currentTimeMillis() + ".jpg";
+            String internalPath = com.example.smartwallet.utils.FileUtils.copyUriToInternalStorage(this, uri, fileName);
+            if (internalPath != null) {
+                filePath = internalPath;
+                tvFileStatus.setText("Scan Attached: " + fileName);
+            }
         }
 
         if (getIntent().hasExtra("document_id")) {
@@ -97,8 +126,13 @@ public class AddDocumentActivity extends AppCompatActivity {
                 tvFileStatus.setText("File: " + filePath);
             }
 
-            ArrayAdapter adapter = (ArrayAdapter) spinnerCategory.getAdapter();
-            spinnerCategory.setSelection(adapter.getPosition(doc.getCategory()));
+            ArrayAdapter<CharSequence> adapter = (ArrayAdapter<CharSequence>) spinnerCategory.getAdapter();
+            if (doc.getCategory() != null) {
+                int position = adapter.getPosition(doc.getCategory());
+                if (position >= 0) {
+                    spinnerCategory.setSelection(position);
+                }
+            }
         }
     }
 
@@ -124,7 +158,13 @@ public class AddDocumentActivity extends AppCompatActivity {
         if (requestCode == 100 && resultCode == RESULT_OK && data != null) {
             Uri uri = data.getData();
             if (uri != null) {
-                String fileName = "doc_" + System.currentTimeMillis();
+                String extension = "";
+                String mimeType = this.getContentResolver().getType(uri);
+                if (mimeType != null) {
+                    extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType);
+                }
+                
+                String fileName = "doc_" + System.currentTimeMillis() + (extension != null && !extension.isEmpty() ? "." + extension : "");
                 String internalPath = com.example.smartwallet.utils.FileUtils.copyUriToInternalStorage(this, uri, fileName);
                 if (internalPath != null) {
                     filePath = internalPath;
@@ -134,6 +174,65 @@ public class AddDocumentActivity extends AppCompatActivity {
                 }
             }
         }
+    }
+
+    private void checkCameraPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissionLauncher.launch(Manifest.permission.CAMERA);
+        } else {
+            startScanning();
+        }
+    }
+
+    private final ActivityResultLauncher<String> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    startScanning();
+                } else {
+                    Toast.makeText(this, "Camera permission is required to scan documents", Toast.LENGTH_LONG).show();
+                }
+            });
+
+    private final ActivityResultLauncher<CropImageContractOptions> cropImage =
+            registerForActivityResult(new CropImageContract(), result -> {
+                if (result.isSuccessful() && result.getUriFilePath(this, true) != null) {
+                    String internalPath = result.getUriFilePath(this, true);
+                    if (internalPath != null) {
+                        filePath = internalPath;
+                        java.io.File f = new java.io.File(internalPath);
+                        tvFileStatus.setText("Scan Attached: " + f.getName());
+                        Toast.makeText(this, "Document Attached Successfully", Toast.LENGTH_SHORT).show();
+                    }
+                } else if (result.getError() != null) {
+                    Toast.makeText(this, "Scan failed: " + result.getError().getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+
+    private void startScanning() {
+        Toast.makeText(this, "Crop your document and tap 'ATTACH' at the top-right corner", Toast.LENGTH_LONG).show();
+        
+        CropImageOptions cropImageOptions = new CropImageOptions();
+        cropImageOptions.imageSourceIncludeGallery = true;
+        cropImageOptions.imageSourceIncludeCamera = true;
+        cropImageOptions.guidelines = CropImageView.Guidelines.ON;
+        
+        // UI Customization for high visibility - fixing "nothing visible" issue
+        cropImageOptions.activityTitle = "Step 2: Crop & Attach";
+        cropImageOptions.cropMenuCropButtonTitle = "ATTACH";
+        cropImageOptions.activityMenuIconColor = Color.WHITE;
+        cropImageOptions.activityMenuTextColor = Color.WHITE;
+        
+        // Use high contrast colors for the cropper screen
+        cropImageOptions.toolbarColor = Color.parseColor("#212121");
+        cropImageOptions.backgroundColor = Color.BLACK;
+        cropImageOptions.guidelinesColor = Color.CYAN;
+        cropImageOptions.borderCornerColor = Color.CYAN;
+        
+        cropImageOptions.allowRotation = true;
+        cropImageOptions.allowCounterRotation = true;
+        cropImageOptions.allowFlipping = true;
+        
+        cropImage.launch(new CropImageContractOptions(null, cropImageOptions));
     }
 
     private void saveDocument() {
@@ -150,18 +249,19 @@ public class AddDocumentActivity extends AppCompatActivity {
 
         Document document = new Document(userId, name, number, category, expiry, filePath, notes);
 
-        if (docId == -1) {
-            db.documentDao().insert(document);
-            Toast.makeText(this, "Document Saved Locally", Toast.LENGTH_SHORT).show();
-        } else {
-            document.setId(docId);
-            db.documentDao().update(document);
-            Toast.makeText(this, "Document Updated Locally", Toast.LENGTH_SHORT).show();
-        }
+        new Thread(() -> {
+            if (docId == -1) {
+                db.documentDao().insert(document);
+                runOnUiThread(() -> Toast.makeText(this, "Document Saved Locally", Toast.LENGTH_SHORT).show());
+            } else {
+                document.setId(docId);
+                db.documentDao().update(document);
+                runOnUiThread(() -> Toast.makeText(this, "Document Updated Locally", Toast.LENGTH_SHORT).show());
+            }
 
-        // Trigger Sync
-        FirebaseSyncManager.getInstance(this).syncDocuments();
-
-        finish();
+            // Trigger Sync
+            FirebaseSyncManager.getInstance(this).syncDocuments();
+            runOnUiThread(this::finish);
+        }).start();
     }
 }

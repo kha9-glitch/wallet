@@ -21,7 +21,7 @@ public class PinActivity extends AppCompatActivity {
 
     private StringBuilder inputPin = new StringBuilder();
     private View[] dots = new View[4];
-    private String mode; // "SET", "CONFIRM", "ENTER", "CHANGE"
+    private String mode; // "SET", "CONFIRM", "ENTER", "CHANGE", "DISABLE"
     private String tempPin;
     private BiometricPrompt biometricPrompt;
     private BiometricPrompt.PromptInfo promptInfo;
@@ -35,10 +35,12 @@ public class PinActivity extends AppCompatActivity {
         if (mode == null) mode = "ENTER";
 
         TextView tvTitle = findViewById(R.id.tv_pin_title);
-        if (mode.equals("SET")) tvTitle.setText("Set 4-Digit PIN");
-        else if (mode.equals("ENTER")) tvTitle.setText("Enter App PIN");
-        else if (mode.equals("CHANGE")) tvTitle.setText("Enter Current PIN");
-        else if (mode.equals("DISABLE")) tvTitle.setText("Enter PIN to Disable Lock");
+        if (tvTitle != null) {
+            if (mode.equals("SET")) tvTitle.setText("Set 4-Digit PIN");
+            else if (mode.equals("ENTER")) tvTitle.setText("Enter App PIN");
+            else if (mode.equals("CHANGE")) tvTitle.setText("Enter Current PIN");
+            else if (mode.equals("DISABLE")) tvTitle.setText("Enter PIN to Disable Lock");
+        }
 
         setupDots();
         setupKeypad();
@@ -56,7 +58,6 @@ public class PinActivity extends AppCompatActivity {
             @Override
             public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
                 super.onAuthenticationError(errorCode, errString);
-                // Handle error
             }
 
             @Override
@@ -91,36 +92,51 @@ public class PinActivity extends AppCompatActivity {
     private void setupKeypad() {
         int[] buttonIds = {R.id.btn0, R.id.btn1, R.id.btn2, R.id.btn3, R.id.btn4, R.id.btn5, R.id.btn6, R.id.btn7, R.id.btn8, R.id.btn9};
         for (int id : buttonIds) {
-            findViewById(id).setOnClickListener(v -> {
-                if (inputPin.length() < 4) {
-                    inputPin.append(((Button) v).getText());
-                    updateDots();
-                    if (inputPin.length() == 4) {
-                        handlePinComplete();
+            View btn = findViewById(id);
+            if (btn != null) {
+                btn.setOnClickListener(v -> {
+                    if (inputPin.length() < 4) {
+                        if (v instanceof Button) {
+                            inputPin.append(((Button) v).getText());
+                        } else if (v instanceof com.google.android.material.button.MaterialButton) {
+                            inputPin.append(((com.google.android.material.button.MaterialButton) v).getText());
+                        }
+                        updateDots();
+                        if (inputPin.length() == 4) {
+                            handlePinComplete();
+                        }
                     }
+                });
+            }
+        }
+
+        View btnBack = findViewById(R.id.btn_back);
+        if (btnBack != null) {
+            btnBack.setOnClickListener(v -> {
+                if (inputPin.length() > 0) {
+                    inputPin.deleteCharAt(inputPin.length() - 1);
+                    updateDots();
                 }
             });
         }
 
-        findViewById(R.id.btn_back).setOnClickListener(v -> {
-            if (inputPin.length() > 0) {
-                inputPin.deleteCharAt(inputPin.length() - 1);
+        View btnClear = findViewById(R.id.btn_clear);
+        if (btnClear != null) {
+            btnClear.setOnClickListener(v -> {
+                inputPin.setLength(0);
                 updateDots();
-            }
-        });
-
-        findViewById(R.id.btn_clear).setOnClickListener(v -> {
-            inputPin.setLength(0);
-            updateDots();
-        });
+            });
+        }
     }
 
     private void updateDots() {
         for (int i = 0; i < 4; i++) {
-            if (i < inputPin.length()) {
-                dots[i].setBackgroundResource(R.drawable.pin_dot_on);
-            } else {
-                dots[i].setBackgroundResource(R.drawable.pin_dot_off);
+            if (dots[i] != null) {
+                if (i < inputPin.length()) {
+                    dots[i].setBackgroundResource(R.drawable.pin_dot_on);
+                } else {
+                    dots[i].setBackgroundResource(R.drawable.pin_dot_off);
+                }
             }
         }
     }
@@ -141,7 +157,8 @@ public class PinActivity extends AppCompatActivity {
         } else if (mode.equals("SET")) {
             tempPin = enteredPin;
             mode = "CONFIRM";
-            ((TextView) findViewById(R.id.tv_pin_title)).setText("Confirm PIN");
+            TextView tvTitle = findViewById(R.id.tv_pin_title);
+            if (tvTitle != null) tvTitle.setText("Confirm PIN");
             clearPin();
         } else if (mode.equals("CONFIRM")) {
             if (enteredPin.equals(tempPin)) {
@@ -151,13 +168,15 @@ public class PinActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(this, "PIN Mismatch. Try again.", Toast.LENGTH_SHORT).show();
                 mode = "SET";
-                ((TextView) findViewById(R.id.tv_pin_title)).setText("Set 4-Digit PIN");
+                TextView tvTitle = findViewById(R.id.tv_pin_title);
+                if (tvTitle != null) tvTitle.setText("Set 4-Digit PIN");
                 clearPin();
             }
         } else if (mode.equals("CHANGE")) {
             if (enteredPin.equals(savedPin)) {
                 mode = "SET";
-                ((TextView) findViewById(R.id.tv_pin_title)).setText("Set New PIN");
+                TextView tvTitle = findViewById(R.id.tv_pin_title);
+                if (tvTitle != null) tvTitle.setText("Set New PIN");
                 clearPin();
             } else {
                 Toast.makeText(this, "Incorrect Current PIN", Toast.LENGTH_SHORT).show();

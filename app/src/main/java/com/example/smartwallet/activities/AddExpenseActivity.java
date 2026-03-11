@@ -14,6 +14,7 @@ import com.example.smartwallet.R;
 import com.example.smartwallet.database.AppDatabase;
 import com.example.smartwallet.firebase.FirebaseSyncManager;
 import com.example.smartwallet.models.Expense;
+import com.example.smartwallet.utils.CurrencyUtils;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.text.SimpleDateFormat;
@@ -49,6 +50,9 @@ public class AddExpenseActivity extends AppCompatActivity {
         Button btnSave = findViewById(R.id.btn_save_expense);
 
         db = AppDatabase.getInstance(this);
+
+        String symbol = CurrencyUtils.getCurrencySymbol(this);
+        etAmount.setHint("Amount (" + symbol + ")");
 
         String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Calendar.getInstance().getTime());
         etDate.setText(today);

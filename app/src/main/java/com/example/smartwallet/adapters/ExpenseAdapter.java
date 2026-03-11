@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smartwallet.R;
 import com.example.smartwallet.models.Expense;
+import com.example.smartwallet.utils.CurrencyUtils;
 
 import java.util.List;
 
@@ -42,7 +43,8 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
         holder.tvCategory.setText(expense.getCategory());
         holder.tvDate.setText(expense.getDate());
         holder.tvPayment.setText(expense.getPaymentMode());
-        holder.tvAmount.setText("₹" + expense.getAmount());
+        String symbol = CurrencyUtils.getCurrencySymbol(holder.itemView.getContext());
+        holder.tvAmount.setText(symbol + expense.getAmount());
 
         holder.itemView.setOnClickListener(v -> listener.onEditClick(expense));
         holder.btnDelete.setOnClickListener(v -> listener.onDeleteClick(expense));

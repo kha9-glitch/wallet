@@ -7,8 +7,6 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
-import android.widget.ImageButton;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,8 +18,8 @@ import com.example.smartwallet.R;
 import com.example.smartwallet.activities.AddExpenseActivity;
 import com.example.smartwallet.adapters.ExpenseAdapter;
 import com.example.smartwallet.database.AppDatabase;
+import com.example.smartwallet.databinding.FragmentExpensesBinding;
 import com.example.smartwallet.models.Expense;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
@@ -30,34 +28,28 @@ import java.util.stream.Collectors;
 
 public class ExpensesFragment extends Fragment implements ExpenseAdapter.OnExpenseClickListener {
 
-    private RecyclerView rvExpenses;
+    private FragmentExpensesBinding binding;
     private ExpenseAdapter adapter;
     private AppDatabase db;
     private String userId;
     private List<Expense> allExpenses = new ArrayList<>();
-    private EditText etSearch;
-    private FloatingActionButton fab;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
             @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_expenses, container, false);
+        binding = FragmentExpensesBinding.inflate(inflater, container, false);
+        View view = binding.getRoot();
 
-        rvExpenses = view.findViewById(R.id.rv_expenses);
-        etSearch = view.findViewById(R.id.et_search_expenses);
-        fab = view.findViewById(R.id.fab_add_expense);
-        ImageButton btnFilter = view.findViewById(R.id.btn_filter_expenses);
-
-        rvExpenses.setLayoutManager(new LinearLayoutManager(getContext()));
+        binding.rvExpenses.setLayoutManager(new LinearLayoutManager(getContext()));
         
         db = AppDatabase.getInstance(getContext());
         userId = FirebaseAuth.getInstance().getUid();
 
         adapter = new ExpenseAdapter(new ArrayList<>(), this);
-        rvExpenses.setAdapter(adapter);
+        binding.rvExpenses.setAdapter(adapter);
 
-        etSearch.addTextChangedListener(new TextWatcher() {
+        binding.etSearchExpenses.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
@@ -70,11 +62,11 @@ public class ExpensesFragment extends Fragment implements ExpenseAdapter.OnExpen
             public void afterTextChanged(Editable s) {}
         });
 
-        fab.setOnClickListener(v -> startActivity(new Intent(getActivity(), AddExpenseActivity.class)));
+        binding.fabAddExpense.setOnClickListener(v -> startActivity(new Intent(getActivity(), AddExpenseActivity.class)));
 
-        btnFilter.setOnClickListener(v -> {
+        binding.btnFilterExpenses.setOnClickListener(v -> {
             // Show a simple sort/filter menu
-            android.widget.PopupMenu popup = new android.widget.PopupMenu(getContext(), btnFilter);
+            android.widget.PopupMenu popup = new android.widget.PopupMenu(getContext(), binding.btnFilterExpenses);
             popup.getMenu().add("Sort by Date (Newest)");
             popup.getMenu().add("Sort by Date (Oldest)");
             popup.getMenu().add("Sort by Amount (High-Low)");
@@ -98,6 +90,12 @@ public class ExpensesFragment extends Fragment implements ExpenseAdapter.OnExpen
         });
 
         return view;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
     }
 
     private void filter(String query) {
